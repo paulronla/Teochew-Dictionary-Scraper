@@ -10,12 +10,16 @@ const URL = `http://www.czyzd.com/ajax/list?page=0&keyword=&pinyin=&chaoyin=&bus
 /*
 IIFE that waits WAIT_TIME ms in between web page downloads. 
 The final page doesn't require the wait.
+
+page == 2 is always a duplicate of page == 1 on their servers, so skip page == 2
 */
 (async function () {
     let [frontURL, endURL] = URL.split('page=0');
     frontURL += 'page=';
 
     for (let i = START_PAGE, promises = [,], oneBeforeEnd = END_PAGE-1; i < oneBeforeEnd; i++) {
+        if (i == 2)
+            continue;
         promises[0] = asyncWait(WAIT_TIME);
         promises[1] = getWebPageAndWrite(i, frontURL, endURL);
         await Promise.all(promises);
