@@ -6,12 +6,24 @@ An example URL is www.czyzd.com/ajax/list?page=0&keyword=&pinyin=&chaoyin=&busho
 
 Each page is returned as HTML without styling. The script submits an HTTP request and then writes the text response to the file system in its own [page_number].html, which can be read by other programs for further processing. In order to not overload the server, wait time of *WAIT_TIME* ms is implemented in between requests
 
-Options are at the top of the script. Here is an example to download all pages:
+Options are at the top of the script. 
 
-```javascript
-const WRITE_PATH = ''; //directory to write to
-const START_PAGE = 0;
-const END_PAGE = 916; //downloads up to, but not including this page
-const WAIT_TIME = 10000; //ms
-const URL = 'http://www.czyzd.com/ajax/list?page=0&keyword=&pinyin=&chaoyin=&bushou=&bihua=0';
+```
+node teochew_dict_scraper.js -h
+
+        Usage:
+        node teochew_dict_scraper.js -flag value
+
+        Options:
+        -dir            <output directory>
+        -start          <start page number>
+        -end            <up to but not including this end page number>
+        -wait           <wait time in ms>
+        -help || -h     <brings up this help>
+```
+
+Here is an example to download all pages:
+
+```
+node teochew_dict_scraper.js -start 0 -end 916
 ```
