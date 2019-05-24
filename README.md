@@ -6,7 +6,7 @@ An example URL is www.czyzd.com/ajax/list?page=0&keyword=&pinyin=&chaoyin=&busho
 
 Each page is returned as HTML without styling. The script submits an HTTP request and then writes the text response to the file system in its own [page_number].html, which can be read by other programs for further processing. In order to not overload the server, wait time of *WAIT_TIME* ms is implemented in between requests
 
-Options are at the top of the script. 
+Options are as follows: 
 
 ```
 node teochew_dict_scraper.js -h
