@@ -1,31 +1,68 @@
 'use strict';
+const args = process.argv.slice(2).map(val => val.toLowerCase());
 const http = require('http');
-const fs = require('fs');
-const WRITE_PATH = '';
-const START_PAGE = 67;
-const END_PAGE = 74;
-const WAIT_TIME = 10000;
-const URL = `http://www.czyzd.com/ajax/list?page=0&keyword=&pinyin=&chaoyin=&bushou=&bihua=0`;
+const fs = require('fs').promises;
+//TODO: better file name validation
+//directory to write to
+const WRITE_PATH = optionVal(args, '-dir') ? 
+optionVal(args, '-dir').endsWith('/') ? optionVal(args, '-dir') : optionVal(args, '-dir') + '/'
+: optionVal(args, '-dir');
+const START_PAGE = optionVal(args, '-start') * 1 || 0;
+const END_PAGE = optionVal(args, '-end') * 1 || START_PAGE+1; //downloads up to, but not including this page
+const WAIT_TIME = optionVal(args, '-wait') * 1 || 10000; //ms
+const URL = 'http://www.czyzd.com/ajax/list?page=0&keyword=&pinyin=&chaoyin=&bushou=&bihua=0';
+
+if (~args.indexOf('-help') || ~args.indexOf('-h')) {
+    console.log(
+        `
+        Usage: 
+        node teochew_dict_scraper.js -flag value
+        
+        Options: 
+        -dir            <output directory>
+        -start          <start page number>
+        -end            <up to but not including this end page number>
+        -wait           <wait time in ms>
+        -help || -h     <brings up this help>
+        `
+        );
+    return;
+}
 
 /*
 IIFE that waits WAIT_TIME ms in between web page downloads. 
-The final page doesn't require the wait.
+
+Most of the time is spent awaiting asyncWait, so if I go past
+the end of the dictionary, just clear the timer and reject the 
+promise immediately.
 
 page == 2 is always a duplicate of page == 1 on their servers, so skip page == 2
 */
 (async function () {
     let [frontURL, endURL] = URL.split('page=0');
     frontURL += 'page=';
+    const rejectAsyncWaitToken = {};
 
-    for (let i = START_PAGE, promises = [,], oneBeforeEnd = END_PAGE-1; i < oneBeforeEnd; i++) {
-        if (i == 2)
-            continue;
-        promises[0] = asyncWait(WAIT_TIME);
-        promises[1] = getWebPageAndWrite(i, frontURL, endURL);
-        await Promise.all(promises);
+    await createWritePath(WRITE_PATH);
+    
+    getWebPageAndWrite(START_PAGE, frontURL, endURL).catch(err => {
+        console.log(err+'\n');
+        rejectAsyncWaitToken.reject();
+    });
+
+    for (let i = START_PAGE+1; i < END_PAGE && i !== 2; i++) {
+        try{
+            await asyncWait(WAIT_TIME, rejectAsyncWaitToken);
+        }
+        catch(err) {
+            return;
+        }
+        
+        getWebPageAndWrite(i, frontURL, endURL).catch(err => {
+            console.log(err+'\n');
+            rejectAsyncWaitToken.reject();
+        });
     }
-
-    getWebPageAndWrite(END_PAGE-1, frontURL, endURL);
 })();
 
 /*
@@ -36,13 +73,20 @@ endURL: string
 returns: void
 
 Gets the web page and then writes it to the file system.
+-1 returned from getWebPage means no results were returned from that query.
 */
 async function getWebPageAndWrite (pageNum, frontURL, endURL) {
     try{
         const text = await getWebPage(pageNum, frontURL, endURL);
-        await writeToFile(text, WRITE_PATH, pageNum);
-    } catch (e) {
-        console.log(e+'\n');
+        if (text === '-1')
+            return new Promise ( (resolve, reject) => reject('Exceeded end of dictionary') );
+
+        let fileName = WRITE_PATH + pageNum + '.html';
+        await fs.writeFile(fileName, text);
+        console.log(fileName + ' saved.\n')
+    } 
+    catch (err) {
+        console.log('The error at page '+pageNum+': '+err.message+'\n');
     }
 }
 
@@ -56,26 +100,40 @@ function getWebPage (pageNum, frontURL, endURL) {
             res.setEncoding('utf8');
             res.on('data', chunk => sb_text.push(chunk));
             res.on('end', () => resolve(sb_text.join('')));
-            res.on('error', e => reject(e.message));
-        }).on('error', err => reject(err.message));
+            res.on('error', err => reject(err));
+        }).on('error', err => reject(err));
     });
 }
 
-function writeToFile (text, writePath, fileName) {
-    const file = WRITE_PATH + fileName + '.html';
+//takes a token that allows other code to reject this promise if the wait isn't necessary
+function asyncWait (time, token) {
+    return new Promise ((resolve, reject) => {
+        let t = setTimeout(resolve, time);
 
-    return new Promise ( (resolve, reject) => {
-        fs.writeFile(file, text, err => {
-            if (err) 
-                reject(err.message);
-            else{
-                console.log(file + ' saved.\n');
-                resolve();
-            }
-        });
+        token.reject = function() {
+            clearTimeout(t);
+            reject();
+        }
     });
 }
 
-function asyncWait (time) {
-    return new Promise (resolve => setTimeout(resolve, time));
+//checks the path and if it doesn't exist, creates it.
+async function createWritePath(path) {
+    if (!path)
+        return;
+    
+    await fs.access(path).catch(async () => {
+        await fs.mkdir(path,{recursive: true});
+        console.log(path + ' created.\n');
+    });
+}
+
+//gets the value associated with that flag
+function optionVal(arr, flag) {
+    let idx = arr.indexOf(flag)
+
+    if (~idx)
+        return arr[idx+1];
+
+    return '';
 }
