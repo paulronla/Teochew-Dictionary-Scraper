@@ -46,24 +46,29 @@ page == 2 is always a duplicate of page == 1 on their servers, so skip page == 2
     await createWritePath(WRITE_PATH);
     
     getWebPageAndWrite(START_PAGE, frontURL, endURL).catch(err => {
-        console.log(err+'\n');
-        rejectAsyncWaitToken.reject();
+        console.log('The error at page '+START_PAGE+': '+err.message+'\n');
+
+        if (END_PAGE - START_PAGE === 1)
+            return;
+
+        if (err.message === 'Exceeded end of dictionary')
+            rejectAsyncWaitToken.reject();
     });
 
-    for (let i = START_PAGE+1; i < END_PAGE && i !== 2; i++) {
-        try{
-            await asyncWait(WAIT_TIME, rejectAsyncWaitToken);
-        }
-        catch(err) {
-            return;
-        }
+    for (let i = START_PAGE+1; i < END_PAGE; i++) {
+        if (i === 2)
+            continue;
+
+        await asyncWait(WAIT_TIME, rejectAsyncWaitToken);
         
         getWebPageAndWrite(i, frontURL, endURL).catch(err => {
-            console.log(err+'\n');
-            rejectAsyncWaitToken.reject();
+            console.log('The error at page '+i+': '+err.message+'\n');
+
+            if (err.message === 'Exceeded end of dictionary')
+                rejectAsyncWaitToken.reject();
         });
     }
-})();
+})().catch(err => console.log(err.message+'\n'));
 
 /*
 getWebPageAndWrite(pageNum, frontURL, endURL)
@@ -76,18 +81,13 @@ Gets the web page and then writes it to the file system.
 -1 returned from getWebPage means no results were returned from that query.
 */
 async function getWebPageAndWrite (pageNum, frontURL, endURL) {
-    try{
-        const text = await getWebPage(pageNum, frontURL, endURL);
-        if (text === '-1')
-            return new Promise ( (resolve, reject) => reject('Exceeded end of dictionary') );
+    const text = await getWebPage(pageNum, frontURL, endURL);
+    if (text === '-1')
+        return new Promise ( (resolve, reject) => reject(new Error('Exceeded end of dictionary')));
 
-        let fileName = WRITE_PATH + pageNum + '.html';
-        await fs.writeFile(fileName, text);
-        console.log(fileName + ' saved.\n')
-    } 
-    catch (err) {
-        console.log('The error at page '+pageNum+': '+err.message+'\n');
-    }
+    let fileName = WRITE_PATH + pageNum + '.html';
+    await fs.writeFile(fileName, text);
+    console.log(fileName + ' saved.\n')
 }
 
 function getWebPage (pageNum, frontURL, endURL) {
@@ -112,7 +112,7 @@ function asyncWait (time, token) {
 
         token.reject = function() {
             clearTimeout(t);
-            reject();
+            reject(new Error('Timer cleared.'));
         }
     });
 }
