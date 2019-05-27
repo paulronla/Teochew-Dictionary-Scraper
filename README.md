@@ -15,11 +15,12 @@ node teochew_dict_scraper.js -h
         node teochew_dict_scraper.js -flag value
 
         Options:
-        -dir            <output directory>
-        -start          <start page number>
-        -end            <up to but not including this end page number>
-        -wait           <wait time in ms>
-        -help || -h     <brings up this help>
+        --dir            <output directory>
+        --start          <start page number>
+        --end            <up to but not including this end page number>
+        --wait           <wait time in ms>
+        --help || -h     <brings up this help>
+        --version || -v  <version>
 ```
 
 Here is an example to download all pages:
