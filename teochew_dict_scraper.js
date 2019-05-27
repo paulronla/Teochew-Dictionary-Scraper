@@ -4,28 +4,35 @@ const http = require('http');
 const fs = require('fs').promises;
 //TODO: better file name validation
 //directory to write to
-const WRITE_PATH = optionVal(args, '-dir') ? 
-optionVal(args, '-dir').endsWith('/') ? optionVal(args, '-dir') : optionVal(args, '-dir') + '/'
-: optionVal(args, '-dir');
-const START_PAGE = optionVal(args, '-start') * 1 || 0;
-const END_PAGE = optionVal(args, '-end') * 1 || START_PAGE+1; //downloads up to, but not including this page
-const WAIT_TIME = optionVal(args, '-wait') * 1 || 10000; //ms
+const WRITE_PATH = optionVal(args, '--dir=') ? 
+optionVal(args, '--dir=').endsWith('/') ? optionVal(args, '--dir=') : optionVal(args, '--dir=') + '/'
+: optionVal(args, '--dir=');
+const START_PAGE = optionVal(args, '--start=') * 1 || 0;
+const END_PAGE = optionVal(args, '--end=') * 1 || START_PAGE+1; //downloads up to, but not including this page
+const WAIT_TIME = optionVal(args, '--wait=') * 1 || 10000; //ms
 const URL = 'http://www.czyzd.com/ajax/list?page=0&keyword=&pinyin=&chaoyin=&bushou=&bihua=0';
+const VERSION = '1.0';
 
-if (~args.indexOf('-help') || ~args.indexOf('-h')) {
+if (~args.indexOf('--help') || ~args.indexOf('-h')) {
     console.log(
         `
         Usage: 
-        node teochew_dict_scraper.js -flag value
+        node teochew_dict_scraper.js --flag=value
         
         Options: 
-        -dir            <output directory>
-        -start          <start page number>
-        -end            <up to but not including this end page number>
-        -wait           <wait time in ms>
-        -help || -h     <brings up this help>
+        --dir            <output directory>
+        --start          <start page number>
+        --end            <up to but not including this end page number>
+        --wait           <wait time in ms>
+        --help || -h     <brings up this help>
+        --version || -v  <version>
         `
         );
+    return;
+}
+
+if (~args.indexOf('--version') || ~args.indexOf('-v')) {
+    console.log(VERSION);
     return;
 }
 
@@ -130,10 +137,10 @@ async function createWritePath(path) {
 
 //gets the value associated with that flag
 function optionVal(arr, flag) {
-    let idx = arr.indexOf(flag)
+    let idx = arr.findIndex(elem => elem.includes(flag));
 
     if (~idx)
-        return arr[idx+1];
+        return arr[idx].split('=')[1];
 
     return '';
 }
