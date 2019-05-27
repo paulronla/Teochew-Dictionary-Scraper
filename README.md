@@ -12,7 +12,7 @@ Options are as follows:
 node teochew_dict_scraper.js -h
 
         Usage:
-        node teochew_dict_scraper.js -flag value
+        node teochew_dict_scraper.js --flag=value
 
         Options:
         --dir            <output directory>
