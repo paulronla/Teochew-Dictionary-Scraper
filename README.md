@@ -28,3 +28,15 @@ Here is an example to download all pages:
 ```
 node teochew_dict_scraper.js -start 0 -end 916
 ```
+## What is Teochew?
+[Teochew](https://en.wikipedia.org/wiki/Teochew_dialect) is a dialect of 
+Chinese with over 25 million speakers worldwide. Outside of China, it is 
+among one of the most spoken Chinese varieties only surpassed by 
+Mandarin, Cantonese, and Taiwanese/Hokkien. Phonetically, it has not 
+changed very much and many vocabularies from Japanese, Korean, and Vietnamese 
+that originated from China centuries ago still sound similar.
+
+For example, consider 肉 which means flesh. \[Niku\] is one of the common 
+Japanese readings borrowed from China along with the character. Compare with 
+Teochew \[nek8\] \([POJ spelling](https://en.wikipedia.org/wiki/Pe̍h-ōe-jī)\) 
+and Mandarin \[rou4\].
