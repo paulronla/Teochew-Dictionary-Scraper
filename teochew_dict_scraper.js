@@ -94,7 +94,7 @@ async function getWebPageAndWrite (pageNum, frontURL, endURL) {
 
     let fileName = WRITE_PATH + pageNum + '.html';
     await fs.writeFile(fileName, text);
-    console.log(fileName + ' saved.\n')
+    console.log(fileName + ' saved.\n');
 }
 
 function getWebPage (pageNum, frontURL, endURL) {
@@ -114,6 +114,8 @@ function getWebPage (pageNum, frontURL, endURL) {
 
 //takes a token that allows other code to reject this promise if the wait isn't necessary
 function asyncWait (time, token) {
+    token = token || {};
+
     return new Promise ((resolve, reject) => {
         let t = setTimeout(resolve, time);
 
@@ -144,3 +146,7 @@ function optionVal(arr, flag) {
 
     return '';
 }
+
+module.exports = {'asyncWait': asyncWait, 
+                'createWritePath': createWritePath, 
+                'optionVal': optionVal};
