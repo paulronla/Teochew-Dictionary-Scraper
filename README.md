@@ -36,7 +36,7 @@ node teochew_dict_scraper.js -h
 Here is an example to download all pages:
 
 ```
-node teochew_dict_scraper.js -start 0 -end 916
+node teochew_dict_scraper.js --start=0 --end=916
 ```
 
 ## Teochew-Audio-Scraper
@@ -65,6 +65,12 @@ node teochew_audio_scraper.js -h
         --wait           <wait time in ms>
         --help || -h     <brings up this help>
         --version || -v  <version>
+```
+
+Here is an example to download all of the audio files:
+
+```
+node teochew_audio_scraper.js --start_track=0 --end_track=2523
 ```
 
 ## What is Teochew?
