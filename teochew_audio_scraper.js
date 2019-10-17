@@ -2,17 +2,17 @@
 const args = process.argv.slice(2).map(val => val.toLowerCase());
 const http = require('http');
 const fs = require('fs');
-const tds = require('./teochew_dict_scraper.js');
+const {asyncWait, createWritePath, optionVal} = require('./modules/shared.js');
 const chaoyinAudioMap = require('./chaoyin_audio.json');
 //TODO: better file name validation
 //directory to write to
-const WRITE_PATH = tds.optionVal(args, '--dir=') ? 
-tds.optionVal(args, '--dir=').endsWith('/') ? tds.optionVal(args, '--dir=') : tds.optionVal(args, '--dir=') + '/'
-: tds.optionVal(args, '--dir=');
-const START_TRACK = tds.optionVal(args, '--start_track=') * 1 || 0;
-const END_TRACK = tds.optionVal(args, '--end_track=') * 1 || START_TRACK+1; //downloads up to, but not including this page
-const WAIT_TIME = tds.optionVal(args, '--wait=') * 1 || 10000; //ms
-const URL = 'cd ';
+const WRITE_PATH = optionVal(args, '--dir=') ? 
+optionVal(args, '--dir=').endsWith('/') ? optionVal(args, '--dir=') : optionVal(args, '--dir=') + '/'
+: optionVal(args, '--dir=');
+const START_TRACK = optionVal(args, '--start_track=') * 1 || 0;
+const END_TRACK = optionVal(args, '--end_track=') * 1 || START_TRACK+1; //downloads up to, but not including this page
+const WAIT_TIME = optionVal(args, '--wait=') * 1 || 10000; //ms
+const URL = 'http://sound.file.czyzd.com/czh/';
 const VERSION = '1.0';
 
 if (~args.indexOf('--help') || ~args.indexOf('-h')) {
@@ -46,7 +46,7 @@ the end of the dictionary, just clear the timer and reject the
 promise immediately.
 */
 (async function () {
-    await tds.createWritePath(WRITE_PATH);
+    await createWritePath(WRITE_PATH);
 
     const chaoyinArr = Object.getOwnPropertyNames(chaoyinAudioMap);
     
@@ -65,7 +65,7 @@ promise immediately.
             return;
         }
 
-        await tds.asyncWait(WAIT_TIME);
+        await asyncWait(WAIT_TIME);
         
         let chaoyin = chaoyinArr[i];
 
